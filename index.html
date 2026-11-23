@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AWAKENING // SIGNAL DETECTED</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green: #00ff41;
+  --green-dim: #00aa2a;
+  --green-dark: #003311;
+  --bg: #000000;
+  --glow: 0 0 8px var(--green), 0 0 16px var(--green);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--green);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 12px;
+  overflow: hidden;
+  height: 100vh;
+  image-rendering: pixelated;
+}
+canvas#rain {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+.landscape {
+  position: fixed;
+  bottom: 0; left: 0;
+  width: 100%; height: 40%;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(to top, #001a00 0%, transparent 100%);
+}
+.mountain {
+  position: absolute;
+  bottom: 0;
+  background: #001100;
+  clip-path: polygon(0% 100%, 20% 40%, 40% 70%, 60% 20%, 80% 60%, 100% 30%, 100% 100%);
+  height: 100%;
+  width: 100%;
+  opacity: 0.8;
+}
+.explosion {
+  position: absolute;
+  bottom: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle, #00ff41 0%, #008822 40%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(2px);
+  animation: pulse 4s ease-in-out infinite;
+  opacity: 0.7;
+}
+.moon {
+  position: absolute;
+  top: 8%;
+  right: 12%;
+  width: 60px;
+  height: 60px;
+  background: #00ff41;
+  border-radius: 50%;
+  box-shadow: var(--glow);
+  opacity: 0.8;
+  cursor: pointer;
+  z-index: 5;
+  transition: transform 0.2s;
+}
+.moon:hover { transform: scale(1.1); }
+.rocket {
+  position: absolute;
+  top: 20%;
+  left: 30%;
+  width: 20px;
+  height: 40px;
+  background: var(--green);
+  clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+  z-index: 6;
+  cursor: grab;
+  box-shadow: var(--glow);
+}
+.window {
+  position: absolute;
+  background: rgba(0, 20, 0, 0.85);
+  border: 3px solid var(--green);
+  box-shadow: var(--glow);
+  z-index: 10;
+  min-width: 280px;
+  cursor: move;
+  user-select: none;
+}
+.window-header {
+  background: var(--green-dark);
+  padding: 8px;
+  font-size: 10px;
+  border-bottom: 2px solid var(--green);
+  display: flex;
+  justify-content: space-between;
+}
+.window-body { padding: 12px; }
+.terminal {
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 700px;
+  z-index: 20;
+}
+.terminal input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--green);
+  font-family: inherit;
+  font-size: 12px;
+  outline: none;
+  caret-color: var(--green);
+}
+.hidden { display: none !important; }
+.unlocked { border-color: #ffff00; }
+.glow-text { text-shadow: var(--glow); }
+.pixel-btn {
+  background: var(--green-dark);
+  border: 2px solid var(--green);
+  color: var(--green);
+  font-family: inherit;
+  padding: 8px 12px;
+  cursor: pointer;
+  margin: 4px;
+}
+.pixel-btn:hover { background: var(--green); color: #000; }
+.screen {
+  background: #001100;
+  border: 2px solid var(--green-dim);
+  padding: 8px;
+  font-size: 10px;
+  line-height: 1.4;
+  margin: 6px 0;
+  min-height: 40px;
+}
+@keyframes pulse {
+  0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.6; }
+  50% { transform: translateX(-50%) scale(1.15); opacity: 0.9; }
+}
+#status { font-size: 10px; margin-top: 6px; color: var(--green-dim); }
+.lore { font-size: 10px; line-height: 1.6; margin-top: 8px; }
+</style>
+</head>
+<body>
+<canvas id="rain"></canvas>
+
+<div class="landscape">
+  <div class="mountain"></div>
+  <div class="explosion" id="explosion"></div>
+</div>
+<div class="moon" id="moon" title="Click me..."></div>
+<div class="rocket" id="rocket" title="Drag me to the explosion"></div>
+
+<div class="window terminal" id="terminal">
+  <div class="window-header">
+    <span>TERMINAL // GRID ACCESS</span>
+    <span>ONLINE</span>
+  </div>
+  <div class="window-body">
+    <div id="output">SIGNAL DETECTED...<br>ENTER ACCESS CODE TO PROCEED.<br>&gt; </div>
+    <input type="text" id="input" autocomplete="off" autofocus placeholder="type code and press enter">
+    <div id="status">Progress: 0/3 sectors unlocked</div>
+  </div>
+</div>
+
+<div class="window hidden" id="win1" style="top: 80px; left: 40px;">
+  <div class="window-header">SECTOR 1 // OPERATOR DESK</div>
+  <div class="window-body">
+    <div class="screen" id="screen1">MONITOR OFFLINE</div>
+    <button class="pixel-btn" onclick="revealBinary()">SCAN MONITOR</button>
+    <div class="lore hidden" id="lore1">The operator watches the end. The code is the only key.</div>
+  </div>
+</div>
+
+<div class="window hidden" id="win2" style="top: 120px; right: 40px;">
+  <div class="window-header">SECTOR 2 // EXPLOSION LOG</div>
+  <div class="window-body">
+    <div class="screen">YIELD: CLASSIFIED<br>STATUS: CRITICAL</div>
+    <div class="lore hidden" id="lore2">The mushroom cloud was not an accident. It was a signal.</div>
+  </div>
+</div>
+
+<div class="window hidden" id="win3" style="top: 50%; left: 50%; transform: translate(-50%, -50%); width: 400px;">
+  <div class="window-header">SECTOR 3 // AWAKENING</div>
+  <div class="window-body">
+    <div class="glow-text" style="font-size: 16px; text-align: center; margin: 10px 0;">YOU ARE AWAKE</div>
+    <div class="lore">The grid is yours. The operator was you all along. The rain falls forever, but the signal is clear: continue the simulation or break it.</div>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('rain');
+const ctx = canvas.getContext('2d');
+let w, h, columns, drops;
+const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン01ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+function resize() {
+  w = canvas.width = window.innerWidth;
+  h = canvas.height = window.innerHeight;
+  columns = Math.floor(w / 14);
+  drops = Array(columns).fill(1);
+}
+resize();
+window.addEventListener('resize', resize);
+
+function drawRain() {
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = '#00ff41';
+  ctx.font = '14px monospace';
+  for (let i = 0; i < drops.length; i++) {
+    const text = chars[Math.floor(Math.random() * chars.length)];
+    ctx.fillText(text, i * 14, drops[i] * 14);
+    if (drops[i] * 14 > h && Math.random() > 0.975) drops[i] = 0;
+    drops[i]++;
+  }
+  requestAnimationFrame(drawRain);
+}
+drawRain();
+
+let dragged = null, offsetX, offsetY;
+document.querySelectorAll('.window, .rocket').forEach(el => {
+  el.addEventListener('pointerdown', e => {
+    if (e.target.tagName === 'INPUT') return;
+    dragged = el;
+    const rect = el.getBoundingClientRect();
+    offsetX = e.clientX - rect.left;
+    offsetY = e.clientY - rect.top;
+    el.style.zIndex = 30;
+    el.setPointerCapture(e.pointerId);
+  });
+});
+document.addEventListener('pointermove', e => {
+  if (!dragged) return;
+  dragged.style.left = (e.clientX - offsetX) + 'px';
+  dragged.style.top = (e.clientY - offsetY) + 'px';
+  dragged.style.transform = 'none';
+  if (dragged.id === 'rocket') {
+    const exp = document.getElementById('explosion').getBoundingClientRect();
+    const r = dragged.getBoundingClientRect();
+    if (Math.abs(r.left - exp.left) < 80 && Math.abs(r.top - exp.top) < 80) {
+      if (!localStorage.getItem('rocketDone')) {
+        localStorage.setItem('rocketDone', '1');
+        log('ROCKET ALIGNED. SIGNAL BOOSTED. CODE FRAGMENT: NUCLEAR');
+      }
+    }
+  }
+});
+document.addEventListener('pointerup', () => { dragged = null; });
+
+let moonClicks = 0;
+document.getElementById('moon').addEventListener('click', () => {
+  moonClicks++;
+  if (moonClicks === 3) {
+    log('MOON PHASE LOCKED. CODE FRAGMENT: GREEN');
+    moonClicks = 0;
+  } else {
+    log(`MOON CLICK ${moonClicks}/3`);
+  }
+});
+
+function revealBinary() {
+  const bin = '01000111 01010010 01000101 01000101 01001110';
+  document.getElementById('screen1').textContent = 'DECODE: ' + bin;
+  document.getElementById('lore1').classList.remove('hidden');
+  log('MONITOR SCANNED. BINARY DETECTED.');
+}
+
+const input = document.getElementById('input');
+const output = document.getElementById('output');
+const status = document.getElementById('status');
+const codes = {
+  green: { win: 'win1', msg: 'SECTOR 1 UNLOCKED // OPERATOR DESK' },
+  nuclear: { win: 'win2', msg: 'SECTOR 2 UNLOCKED // EXPLOSION LOG' },
+  awakening: { win: 'win3', msg: 'SECTOR 3 UNLOCKED // AWAKENING COMPLETE' }
+};
+let unlocked = JSON.parse(localStorage.getItem('unlocked') || '[]');
+
+function updateStatus() {
+  status.textContent = `Progress: ${unlocked.length}/3 sectors unlocked`;
+  unlocked.forEach(id => document.getElementById(id)?.classList.remove('hidden'));
+}
+updateStatus();
+
+function log(msg) {
+  output.innerHTML += msg + '<br>&gt; ';
+  output.scrollTop = output.scrollHeight;
+}
+
+input.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const cmd = input.value.trim().toLowerCase();
+    input.value = '';
+    log(cmd);
+    if (codes[cmd]) {
+      const c = codes[cmd];
+      if (!unlocked.includes(c.win)) {
+        unlocked.push(c.win);
+        localStorage.setItem('unlocked', JSON.stringify(unlocked));
+        document.getElementById(c.win).classList.remove('hidden');
+        log(c.msg);
+        updateStatus();
+      } else {
+        log('SECTOR ALREADY OPEN');
+      }
+    } else if (cmd === 'help') {
+      log('HINTS: CLICK THE MOON. DRAG THE ROCKET. SCAN THE MONITOR. CODES ARE THEMATIC.');
+    } else if (cmd === 'clear') {
+      output.innerHTML = '&gt; ';
+    } else if (cmd === 'reset') {
+      localStorage.clear();
+      location.reload();
+    } else {
+      log('ACCESS DENIED. UNKNOWN CODE.');
+    }
+  }
+});
+
+log('Type HELP for guidance. Progress is saved locally.');
+</script>
+</body>
+</html>
